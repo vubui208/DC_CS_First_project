@@ -84,8 +84,97 @@ def clear_selected():
         selected["frame"].configure(highlightbackground=CARD_BORDER, highlightthickness=1, bg=CARD_BG)
     selected["frame"] = None
 
-cart_items = [] 
-active_coupon = None  
+def make_scrollable(parent: tk.Widget, bg_color: str) -> tk.Frame:
+    # ==== TWEAKABLES (tốc độ/độ mượt) ====
+    STEP_PER_TICK = 0.07    # mỗi nấc chuột thêm bấy nhiêu "tỉ lệ" chiều cao (0..1)
+    FRICTION      = 0.88    # ma sát (0.80 mượt lâu hơn, 0.92 rất dài)
+    FRAME_MS      = 12      # khung hình (ms). 10-16ms là mượt
+
+    container = tk.Frame(parent, bg=bg_color)
+    container.pack(fill="both", expand=True)
+
+    canvas = tk.Canvas(container, borderwidth=0, highlightthickness=0, bg=bg_color)
+    vbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+    canvas.configure(yscrollcommand=vbar.set)
+
+    canvas.pack(side="left", fill="both", expand=True)
+    vbar.pack(side="right", fill="y")
+
+    inner = tk.Frame(canvas, bg=bg_color)
+    window_id = canvas.create_window((0, 0), window=inner, anchor="nw")
+
+    def on_inner_config(_):
+        canvas.configure(scrollregion=canvas.bbox("all"))
+        canvas.itemconfigure(window_id, width=canvas.winfo_width())
+
+    inner.bind("<Configure>", on_inner_config)
+    canvas.bind("<Configure>", lambda e: canvas.itemconfigure(window_id, width=e.width))
+
+    # ===== Momentum state =====
+    state = {"velocity": 0.0, "animating": False, "job": None}
+
+    def clamp01(x): 
+        return 0.0 if x < 0.0 else (1.0 if x > 1.0 else x)
+
+    def current_pos():
+        # canvas.yview() -> (first_frac, last_frac); lấy first
+        return canvas.yview()[0] if canvas.yview() else 0.0
+
+    def animate():
+        # di chuyển theo velocity và giảm velocity bởi ma sát
+        pos = current_pos()
+        pos += state["velocity"]
+        pos = clamp01(pos)
+        canvas.yview_moveto(pos)
+
+        state["velocity"] *= FRICTION
+        if abs(state["velocity"]) < 0.001:
+            state["velocity"] = 0.0
+            state["animating"] = False
+            state["job"] = None
+            return
+
+        state["job"] = canvas.after(FRAME_MS, animate)
+
+    def kick():
+        if not state["animating"]:
+            state["animating"] = True
+            animate()
+
+    # ===== Wheel handler (Win/mac trackpad) =====
+    def on_wheel(event):
+        # delta: Win ~ +/-120, mac có thể nhỏ và liên tục → scale hợp lý
+        scale = (event.delta / 120.0) if getattr(event, "delta", 0) else 0
+        # đảo dấu cho cảm giác tự nhiên: delta>0 cuộn lên -> pos giảm
+        state["velocity"] += -scale * STEP_PER_TICK
+        kick()
+
+    # ===== Linux buttons =====
+    def on_btn4(_):  # up
+        state["velocity"] += -STEP_PER_TICK
+        kick()
+
+    def on_btn5(_):  # down
+        state["velocity"] += STEP_PER_TICK
+        kick()
+
+    # Bind theo vùng hover: bind_all khi chuột vào, gỡ khi ra
+    def bind_all(_=None):
+        canvas.bind_all("<MouseWheel>", on_wheel)  # Win/mac
+        canvas.bind_all("<Button-4>", on_btn4)     # Linux up
+        canvas.bind_all("<Button-5>", on_btn5)     # Linux down
+
+    def unbind_all(_=None):
+        canvas.unbind_all("<MouseWheel>")
+        canvas.unbind_all("<Button-4>")
+        canvas.unbind_all("<Button-5>")
+
+    for w in (canvas, inner):
+        w.bind("<Enter>", bind_all)
+        w.bind("<Leave>", unbind_all)
+
+    return inner
+
 
 def des(item_name, price, qty):
     return {"item_name": item_name, "price": price, "qty": qty}
@@ -365,10 +454,16 @@ def build_main_ui():
     notebook_main = ttk.Notebook(menu_outer)
     notebook_main.pack(expand=True, fill="both", padx=6, pady=6)
 
-    starter = tk.Frame(notebook_main, bg=PANEL_MENU_BG, bd=0);  notebook_main.add(starter,  text="Starters")
-    mains   = tk.Frame(notebook_main, bg=PANEL_MENU_BG, bd=0);  notebook_main.add(mains,    text="Mains")
-    drinks  = tk.Frame(notebook_main, bg=PANEL_MENU_BG, bd=0);  notebook_main.add(drinks,   text="Drinks")
-    desserts= tk.Frame(notebook_main, bg=PANEL_MENU_BG, bd=0);  notebook_main.add(desserts, text="Desserts")
+    starter_tab = tk.Frame(notebook_main, bg=PANEL_MENU_BG, bd=0);  notebook_main.add(starter_tab,  text="Starters")
+    mains_tab   = tk.Frame(notebook_main, bg=PANEL_MENU_BG, bd=0);  notebook_main.add(mains_tab,    text="Mains")
+    drinks_tab  = tk.Frame(notebook_main, bg=PANEL_MENU_BG, bd=0);  notebook_main.add(drinks_tab,   text="Drinks")
+    desserts_tab= tk.Frame(notebook_main, bg=PANEL_MENU_BG, bd=0);  notebook_main.add(desserts_tab, text="Desserts")
+
+    # scrollable inner frames
+    starter = make_scrollable(starter_tab, PANEL_MENU_BG)
+    mains   = make_scrollable(mains_tab,   PANEL_MENU_BG)
+    drinks  = make_scrollable(drinks_tab,  PANEL_MENU_BG)
+    desserts= make_scrollable(desserts_tab,PANEL_MENU_BG)
 
     for name, data in MENU.get("Starters", {}).items():  
         to_add_items(starter,  name, data["price"], data["stock"])
