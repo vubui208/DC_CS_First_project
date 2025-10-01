@@ -25,12 +25,11 @@ COUPONS = {
 
 # User management
 USERS_FILE = "users.json"
-RECEIPTS_FILE = "/Users/kelvinthepig/Desktop/project1/data.txt"
+RECEIPTS_DIR = "receipts"
 
-# Default admin account
+#default account
 DEFAULT_USERS = {
     "admin": {"password": "admin123", "role": "admin"},
-    "customer": {"password": "customer123", "role": "customer"}
 }
 
 current_user = None
@@ -46,9 +45,8 @@ def save_users(users):
         json.dump(users, f, indent=2)
 
 def ensure_receipts_path():
-    d = os.path.dirname(RECEIPTS_FILE)
-    if d and not os.path.exists(d):
-        os.makedirs(d, exist_ok=True)
+    if not os.path.exists(RECEIPTS_DIR):
+        os.makedirs(RECEIPTS_DIR, exist_ok=True)
 
 MENU = {
     "Starters": {
@@ -217,9 +215,12 @@ def format_receipt_text():
 
 def save_receipt_to_file():
     ensure_receipts_path()
-    with open(RECEIPTS_FILE, 'a') as f:
-        f.write(format_receipt_text() + "\n\n")
-    return RECEIPTS_FILE
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    username = current_user['username'] if current_user else 'guest'
+    filename = os.path.join(RECEIPTS_DIR, f"receipt_{username}_{timestamp}.txt")
+    with open(filename, 'w') as f:
+        f.write(format_receipt_text())
+    return filename
 
 def check_out():
     if not cart_items:

@@ -1,0 +1,11 @@
+===== RECEIPT =====
+Date: 2025-10-01 07:36:43
+Customer: guest
+
+Spring Rolls x1 @ $5.50 = $5.50
+
+Subtotal: $5.50
+Discount: -$0.00
+Tax (8.0%): $0.44
+TOTAL: $5.94
+===================
