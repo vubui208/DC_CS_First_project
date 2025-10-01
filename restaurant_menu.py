@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 
 tax_rate = 0.08  #8% tax
-
+active_coupon = False
 screen_bg     = "#1f2937"
 PANEL_MENU_BG = "#374151"
 PANEL_QTY_BG  = "#4b5563"
@@ -70,7 +70,7 @@ MENU = {
         "Ice Cream Scoop":     {"price": 3.75, "stock": 15},
     },
 }
-
+cart_items =[]
 selected = {"frame": None}
 
 def select_frame(frame: tk.Frame):
@@ -85,10 +85,10 @@ def clear_selected():
     selected["frame"] = None
 
 def make_scrollable(parent: tk.Widget, bg_color: str) -> tk.Frame:
-    # ==== TWEAKABLES (tốc độ/độ mượt) ====
-    STEP_PER_TICK = 0.07    # mỗi nấc chuột thêm bấy nhiêu "tỉ lệ" chiều cao (0..1)
-    FRICTION      = 0.88    # ma sát (0.80 mượt lâu hơn, 0.92 rất dài)
-    FRAME_MS      = 12      # khung hình (ms). 10-16ms là mượt
+  
+    STEP_PER_TICK = 0.07    
+    FRICTION      = 0.88    
+    FRAME_MS      = 12      
 
     container = tk.Frame(parent, bg=bg_color)
     container.pack(fill="both", expand=True)
@@ -110,18 +110,18 @@ def make_scrollable(parent: tk.Widget, bg_color: str) -> tk.Frame:
     inner.bind("<Configure>", on_inner_config)
     canvas.bind("<Configure>", lambda e: canvas.itemconfigure(window_id, width=e.width))
 
-    # ===== Momentum state =====
+    
     state = {"velocity": 0.0, "animating": False, "job": None}
 
     def clamp01(x): 
         return 0.0 if x < 0.0 else (1.0 if x > 1.0 else x)
 
     def current_pos():
-        # canvas.yview() -> (first_frac, last_frac); lấy first
+       
         return canvas.yview()[0] if canvas.yview() else 0.0
 
     def animate():
-        # di chuyển theo velocity và giảm velocity bởi ma sát
+        
         pos = current_pos()
         pos += state["velocity"]
         pos = clamp01(pos)
@@ -143,9 +143,9 @@ def make_scrollable(parent: tk.Widget, bg_color: str) -> tk.Frame:
 
     # ===== Wheel handler (Win/mac trackpad) =====
     def on_wheel(event):
-        # delta: Win ~ +/-120, mac có thể nhỏ và liên tục → scale hợp lý
+        
         scale = (event.delta / 120.0) if getattr(event, "delta", 0) else 0
-        # đảo dấu cho cảm giác tự nhiên: delta>0 cuộn lên -> pos giảm
+       
         state["velocity"] += -scale * STEP_PER_TICK
         kick()
 
@@ -158,7 +158,7 @@ def make_scrollable(parent: tk.Widget, bg_color: str) -> tk.Frame:
         state["velocity"] += STEP_PER_TICK
         kick()
 
-    # Bind theo vùng hover: bind_all khi chuột vào, gỡ khi ra
+    
     def bind_all(_=None):
         canvas.bind_all("<MouseWheel>", on_wheel)  # Win/mac
         canvas.bind_all("<Button-4>", on_btn4)     # Linux up
@@ -219,6 +219,7 @@ def compute_subtotal():
     return res
 
 def compute_discount(subtotal):
+    
     if not active_coupon:
         return 0.0
     kind, val = active_coupon
