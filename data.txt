@@ -1,0 +1,29 @@
+===== RECEIPT =====
+Date: 2025-09-30 21:41:33
+Customer: guest
+
+Cheesecake x1 @ $6.25 = $6.25
+Cheesecake x1 @ $6.25 = $6.25
+Cheesecake x1 @ $6.25 = $6.25
+
+Coupon: 15%
+Subtotal: $18.75
+Discount: -$2.81
+Tax (8.0%): $1.28
+TOTAL: $17.21
+===================
+
+===== RECEIPT =====
+Date: 2025-09-30 21:44:13
+Customer: guest
+
+Spring Rolls x1 @ $5.50 = $5.50
+Spring Rolls x1 @ $5.50 = $5.50
+Spring Rolls x1 @ $5.50 = $5.50
+
+Subtotal: $16.50
+Discount: -$0.00
+Tax (8.0%): $1.32
+TOTAL: $17.82
+===================
+
