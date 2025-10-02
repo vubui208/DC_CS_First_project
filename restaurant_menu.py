@@ -26,6 +26,8 @@ COUPONS = {
 # User management
 USERS_FILE = "users.json"
 RECEIPTS_DIR = "receipts"
+# Base menu file used before login or for guests
+MENU_FILE = "menu.json"
 
 #default account
 DEFAULT_USERS = {
@@ -48,7 +50,7 @@ def ensure_receipts_path():
     if not os.path.exists(RECEIPTS_DIR):
         os.makedirs(RECEIPTS_DIR, exist_ok=True)
 
-MENU = {
+DEFAULT_MENU = {
     "Starters": {
         "Spring Rolls":    {"price": 5.50, "stock": 12},
         "Garlic Bread":    {"price": 4.25, "stock": 10},
@@ -70,6 +72,31 @@ MENU = {
         "Ice Cream Scoop":     {"price": 3.75, "stock": 15},
     },
 }
+
+def get_menu_file_for_user():
+    # Each admin gets their own menu file; guests/customers use the shared default
+    if current_user and current_user.get("role") == "admin":
+        username = current_user.get("username", "admin")
+        return f"menu_{username}.json"
+    return MENU_FILE
+
+def load_menu():
+    menu_path = get_menu_file_for_user()
+    if os.path.exists(menu_path):
+        with open(menu_path, 'r') as f:
+            return json.load(f)
+    # If missing: create from defaults and save to disk
+    menu_obj = DEFAULT_MENU.copy()
+    with open(menu_path, 'w') as f:
+        json.dump(menu_obj, f, indent=2)
+    return menu_obj
+
+def save_menu(menu_obj):
+    menu_path = get_menu_file_for_user()
+    with open(menu_path, 'w') as f:
+        json.dump(menu_obj, f, indent=2)
+
+MENU = load_menu()
 cart_items =[]
 selected = {"frame": None}
 
@@ -439,6 +466,7 @@ def build_admin_tab():
             return
         MENU.setdefault(cat, {})
         MENU[cat][name] = {"price": price, "stock": stock}
+        save_menu(MENU)
         refresh_menu_items()
         messagebox.showinfo("Added", f"Added {name} to {cat}.")
         item_var.set(""); price_var.set(""); stock_var.set("")
@@ -552,6 +580,8 @@ def do_login_register_ui():
         if u in users and users[u]["password"] == p and users[u]["role"] == "admin":
             current_user = {"username": u, "role": "admin"}
             login_win.destroy()
+            # reload menu for this admin and rebuild UI
+            globals()["MENU"] = load_menu()
             build_main_ui()
         else:
             messagebox.showerror("Login failed", "Admin only.")
@@ -573,6 +603,8 @@ def do_login_register_ui():
         global current_user
         current_user = {"username": "guest", "role": "customer"}
         login_win.destroy()
+        # load shared menu and build
+        globals()["MENU"] = load_menu()
         build_main_ui()
 
     ttk.Button(btns, text="Login", command=do_login).pack(side="left", padx=4)

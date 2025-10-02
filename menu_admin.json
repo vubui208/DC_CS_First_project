@@ -1,0 +1,62 @@
+{
+  "Starters": {
+    "Spring Rolls": {
+      "price": 5.5,
+      "stock": 12
+    },
+    "Garlic Bread": {
+      "price": 4.25,
+      "stock": 10
+    },
+    "Tomato Soup": {
+      "price": 4.75,
+      "stock": 8
+    },
+    "123123": {
+      "price": 123.0,
+      "stock": 123
+    }
+  },
+  "Mains": {
+    "Grilled Chicken": {
+      "price": 12.99,
+      "stock": 10
+    },
+    "Beef Burger": {
+      "price": 11.5,
+      "stock": 9
+    },
+    "Veggie Pasta": {
+      "price": 10.75,
+      "stock": 7
+    }
+  },
+  "Drinks": {
+    "Iced Tea": {
+      "price": 2.99,
+      "stock": 20
+    },
+    "Lemonade": {
+      "price": 3.25,
+      "stock": 16
+    },
+    "Sparkling Water": {
+      "price": 2.5,
+      "stock": 18
+    }
+  },
+  "Desserts": {
+    "Cheesecake": {
+      "price": 6.25,
+      "stock": 8
+    },
+    "Chocolate Lava Cake": {
+      "price": 6.99,
+      "stock": 6
+    },
+    "Ice Cream Scoop": {
+      "price": 3.75,
+      "stock": 15
+    }
+  }
+}

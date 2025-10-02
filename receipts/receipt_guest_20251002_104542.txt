@@ -1,0 +1,17 @@
+===== RECEIPT =====
+Date: 2025-10-02 10:45:42
+Customer: guest
+
+Iced Tea x1 @ $2.99 = $2.99
+Iced Tea x1 @ $2.99 = $2.99
+Iced Tea x1 @ $2.99 = $2.99
+Lemonade x1 @ $3.25 = $3.25
+Lemonade x1 @ $3.25 = $3.25
+Cheesecake x1 @ $6.25 = $6.25
+
+Coupon: 15%
+Subtotal: $21.72
+Discount: -$3.26
+Tax (8.0%): $1.48
+TOTAL: $19.94
+===================
